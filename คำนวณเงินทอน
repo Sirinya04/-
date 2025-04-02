@@ -1,0 +1,33 @@
+<?php
+function calculateChange($amountPaid, $itemPrice) {
+    $change = $amountPaid - $itemPrice;
+
+    if ($change < 0) {
+        echo "จำนวนเงินที่จ่ายไม่เพียงพอ.";
+        return;
+    }
+
+    echo "-----------------------------\n";
+    echo "ราคาสินค้า: " . number_format($itemPrice) . " บาท\n";
+    echo "จำนวนเงินที่จ่าย: " . number_format($amountPaid) . " บาท\n";
+    echo "เงินทอนทั้งหมด: " . number_format($change) . " บาท\n";
+    echo "-----------------------------\n";
+
+    // รายการธนบัตรและเหรียญที่ต้องการใช้ในการทอน
+    $denominations = [500, 100, 50, 20, 10, 5, 2, 1];
+
+    foreach ($denominations as $denomination) {
+        if ($change >= $denomination) {
+            $count = floor($change / $denomination);
+            $change = $change % $denomination;
+            echo "จำนวน " . str_pad($denomination, 3, " ", STR_PAD_LEFT) . " บาท: " . str_pad($count, 2, " ", STR_PAD_LEFT) . " ใบ/เหรียญ\n";
+        }
+    }
+    echo "-----------------------------\n";
+}
+
+// ทดสอบโปรแกรม
+$amountPaid = 1000; // จำนวนเงินที่จ่าย
+$itemPrice = 375;   // ราคาสินค้า
+
+calculateChange($amountPaid, $itemPrice);
