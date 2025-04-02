@@ -1,0 +1,122 @@
+<?php
+// Step 1: Connect to the Database using PDO
+try {
+    $username = "root";
+    $password = "";
+    $servername = "mysql:host=localhost;dbname=restaurant;charset=utf8";
+    $conn = new PDO($servername, $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (Exception $e) {
+    echo "Database connection error: " . $e->getMessage();
+    exit();
+}
+
+// Step 2: Check if the form is submitted to add a new customer
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_customer'])) {
+    $name = $_POST['name'];
+    $city = $_POST['city'];
+
+    // Step 3: Insert the new customer into the database
+    if (!empty($name) && !empty($city)) {
+        try {
+            $sql_insert = "INSERT INTO customers (name, city) VALUES (:name, :city)";
+            $stmt = $conn->prepare($sql_insert);
+            $stmt->execute(['name' => $name, 'city' => $city]);
+            echo "<p>New customer added successfully!</p>";
+        } catch (PDOException $e) {
+            echo "<p>Error adding customer: " . $e->getMessage() . "</p>";
+        }
+    } else {
+        echo "<p>Please provide both name and city.</p>";
+    }
+}
+
+// Step 4: Fetch Customers Data
+$sql_customers = "SELECT * FROM customers";
+$customers_stmt = $conn->prepare($sql_customers);
+$customers_stmt->execute();
+$customers = $customers_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Step 5: Fetch Menus Data
+$sql_menus = "SELECT * FROM manus";  // ถ้าเทเบิลชื่อ manus ไม่ใช่ menus
+$menus_stmt = $conn->prepare($sql_menus);
+$menus_stmt->execute();
+$menus = $menus_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Step 6: Fetch Receipts to associate customers with their ordered menus
+$sql_receipts = "SELECT * FROM receipt";
+$receipts_stmt = $conn->prepare($sql_receipts);
+$receipts_stmt->execute();
+$receipts = $receipts_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer and Menu Information</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Customer and Menu Information</h1>
+
+       <!-- Step 7: Add Customer Form -->
+       <h2>Add New Customer</h2>
+    <form method="POST" action="">
+        <label for="name">Customer Name:</label>
+        <input type="text" name="name" id="name" required>
+        <br><br>
+        <label for="city">City:</label>
+        <input type="text" name="city" id="city" required>
+        <br><br>
+        <button type="submit" name="add_customer">Add Customer</button>
+    </form>
+
+    <!-- Step 8: Display Customers Table -->
+    <h2>Customers</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>City</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($customers as $customer): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($customer['id']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['name']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['city']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+</body>
+</html>
+
+<?php
+// Step 9: Close the Database Connection
+$conn = null;
+?>
